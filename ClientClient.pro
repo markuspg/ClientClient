@@ -15,6 +15,10 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 
-SOURCES += main.cpp
+SOURCES += src/main.cpp \
+    src/serverconnector.cpp
+
+HEADERS += \
+    src/serverconnector.h
 
 QMAKE_CXXFLAGS += -std=c++11
