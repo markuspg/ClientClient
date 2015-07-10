@@ -2,6 +2,7 @@
 
 ccServerConnector::ccServerConnector( QObject *argParent) :
     QObject{ argParent },
+    env{ QProcessEnvironment::systemEnvironment() },
     socket{ this }
 {
     if ( !socket.bind( QHostAddress{ "192.168.53.100" }, 19871 ) ) {
@@ -28,10 +29,20 @@ void ccServerConnector::ReadMessage() {
         return;
     }
 
+    qDebug() << QString::number( blockSize );
+    qDebug() << QString::number( messageID );
+
     QString serverAnswer;
     in >> serverAnswer;
 
     qDebug() << serverAnswer;
+
+    switch ( messageID ) {
+    case 0:
+        Shutdown();
+    default:
+        true;
+    }
 }
 
 void ccServerConnector::SendMessage( const QString &argMessage, const quint16 &argMessageID ) {
@@ -45,4 +56,12 @@ void ccServerConnector::SendMessage( const QString &argMessage, const quint16 &a
     out << ( quint16 )( block.size() - sizeof( quint16 ) * 2 );
 
     socket.write( block );
+}
+
+void ccServerConnector::Shutdown() {
+    socket.disconnectFromHost();
+
+    QProcess shutdownProcess;
+    shutdownProcess.setProcessEnvironment( env );
+    shutdownProcess.startDetached( "sudo shutdown -hP now" );
 }

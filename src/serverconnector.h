@@ -2,6 +2,7 @@
 #define SERVERCONNECTOR_H
 
 #include <QObject>
+#include <QProcess>
 
 #include <QtNetwork>
 
@@ -16,8 +17,11 @@ public slots:
 
 private:
     quint16 blockSize = 0;
+    const QProcessEnvironment env;
     quint16 messageID = 0;
     QTcpSocket socket;
+
+    void Shutdown();
 
 private slots:
     void ReadMessage();
