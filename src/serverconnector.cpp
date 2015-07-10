@@ -12,6 +12,12 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
     connect( &socket, &QTcpSocket::readyRead, this, &ccServerConnector::ReadMessage );
 }
 
+void ccServerConnector::KillzLeaf() {
+    QProcess killzLeafProcess;
+    killzLeafProcess.setProcessEnvironment( env );
+    killzLeafProcess.startDetached( "/usr/bin/killall", QStringList{ "zleaf.exe" } );
+}
+
 void ccServerConnector::ReadMessage() {
     QDataStream in( &socket );
     in.setVersion( QDataStream::Qt_5_2 );
@@ -40,6 +46,13 @@ void ccServerConnector::ReadMessage() {
     switch ( messageID ) {
     case 0:
         Shutdown();
+        break;
+    case 1:
+        StartzLeaf( serverAnswer );
+        break;
+    case 2:
+        KillzLeaf();
+        break;
     default:
         true;
     }
@@ -64,4 +77,14 @@ void ccServerConnector::Shutdown() {
     QProcess shutdownProcess;
     shutdownProcess.setProcessEnvironment( env );
     shutdownProcess.startDetached( "sudo shutdown -hP now" );
+}
+
+void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
+    QProcess startzLeafProcess;
+    startzLeafProcess.setProcessEnvironment( env );
+
+    QStringList zleafSettings = argzLeafSettings.split( '|', QString::SkipEmptyParts );
+    QStringList startzLeafarguments = QStringList{} << "/opt/zTree_" + zleafSettings[ 0 ] + "/zleaf.exe"
+                                                    << "/server" << zleafSettings[ 1 ];
+    startzLeafProcess.startDetached( "/usr/bin/wine", startzLeafarguments );
 }

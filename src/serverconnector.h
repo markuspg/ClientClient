@@ -21,7 +21,9 @@ private:
     quint16 messageID = 0;
     QTcpSocket socket;
 
+    void KillzLeaf();
     void Shutdown();
+    void StartzLeaf( const QString &argzLeafSettings );
 
 private slots:
     void ReadMessage();
