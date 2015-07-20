@@ -18,7 +18,9 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
 void ccServerConnector::KillzLeaf() {
     QProcess killzLeafProcess;
     killzLeafProcess.setProcessEnvironment( env );
+#ifdef Q_OS_UNIX
     killzLeafProcess.startDetached( "/usr/bin/killall", QStringList{ "zleaf.exe" } );
+#endif
 }
 
 void ccServerConnector::ReadMessage() {
@@ -79,7 +81,10 @@ void ccServerConnector::Shutdown() {
 
     QProcess shutdownProcess;
     shutdownProcess.setProcessEnvironment( env );
+
+#ifdef Q_OS_UNIX
     shutdownProcess.startDetached( "sudo shutdown -hP now" );
+#endif
 }
 
 void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
@@ -87,7 +92,15 @@ void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
     startzLeafProcess.setProcessEnvironment( env );
 
     QStringList zleafSettings = argzLeafSettings.split( '|', QString::SkipEmptyParts );
-    QStringList startzLeafarguments = QStringList{} << "/opt/zTree_" + zleafSettings[ 0 ] + "/zleaf.exe"
-                                                    << "/server" << zleafSettings[ 1 ];
-    startzLeafProcess.startDetached( "/usr/bin/wine", startzLeafarguments );
+
+    QString program;
+    QStringList arguments;
+#ifdef Q_OS_UNIX
+    program = "/usr/bin/wine";
+    arguments.append( "/opt/zTree_" + zleafSettings[ 0 ] + "/zleaf.exe" );
+#else
+    program = QString{ "/opt/zTree_" + zleafSettings[ 0 ] + "/zleaf.exe" };
+#endif
+    arguments << "/server" << zleafSettings[ 1 ];
+    startzLeafProcess.startDetached( program, arguments );
 }
