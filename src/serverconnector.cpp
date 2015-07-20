@@ -5,10 +5,13 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
     env{ QProcessEnvironment::systemEnvironment() },
     socket{ this }
 {
-    if ( !socket.bind( QHostAddress{ "192.168.53.100" }, 19871 ) ) {
+    QSettings settings{ "Economic Laboratory", "EcoLabLib" };
+    if ( !socket.bind( QHostAddress{ settings.value( "server_ip", "127.0.0.1" ).toString() },
+                       settings.value( "server_port", "19870" ).toUInt() + 1 ) ) {
         throw 20;
     }
-    socket.connectToHost( QHostAddress{ "192.168.53.100" }, 19870 );
+    socket.connectToHost( QHostAddress{ settings.value( "server_ip", "127.0.0.1" ).toString() },
+                          settings.value( "server_port", "19870" ).toUInt() );
     connect( &socket, &QTcpSocket::readyRead, this, &ccServerConnector::ReadMessage );
 }
 
