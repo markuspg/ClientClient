@@ -17,8 +17,10 @@ public slots:
 
 private:
     quint16 blockSize = 0;
+    QTimer connectionIntervalTimer;
     const QProcessEnvironment env;
     quint16 messageID = 0;
+    QSettings settings;
     QTcpSocket socket;
 
     void KillzLeaf();
@@ -28,6 +30,7 @@ private:
 private slots:
     void ReadMessage();
     void SendMessage( const QString &argMessage, const quint16 &argMessageID );
+    void TryConnect();
 };
 
 #endif // SERVERCONNECTOR_H

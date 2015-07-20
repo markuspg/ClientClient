@@ -2,17 +2,23 @@
 
 ccServerConnector::ccServerConnector( QObject *argParent) :
     QObject{ argParent },
+    connectionIntervalTimer{ this },
     env{ QProcessEnvironment::systemEnvironment() },
+    settings{ "Economic Laboratory", "EcoLabLib", this },
     socket{ this }
 {
-    QSettings settings{ "Economic Laboratory", "EcoLabLib" };
     if ( !socket.bind( QHostAddress{ settings.value( "server_ip", "127.0.0.1" ).toString() },
                        settings.value( "server_port", "19870" ).toUInt() + 1 ) ) {
         throw 20;
     }
-    socket.connectToHost( QHostAddress{ settings.value( "server_ip", "127.0.0.1" ).toString() },
-                          settings.value( "server_port", "19870" ).toUInt() );
     connect( &socket, &QTcpSocket::readyRead, this, &ccServerConnector::ReadMessage );
+    connect( &socket, &QTcpSocket::disconnected,
+             &connectionIntervalTimer, &QTimer::start );
+
+    connect( &connectionIntervalTimer, &QTimer::timeout,
+             this, &ccServerConnector::TryConnect );
+    connectionIntervalTimer.setInterval( 3000 );
+    connectionIntervalTimer.start();
 }
 
 void ccServerConnector::KillzLeaf() {
@@ -103,4 +109,13 @@ void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
 #endif
     arguments << "/server" << zleafSettings[ 1 ];
     startzLeafProcess.startDetached( program, arguments );
+}
+
+void ccServerConnector::TryConnect() {
+    while ( socket.state() != QAbstractSocket::ConnectingState ||
+            socket.state() != QAbstractSocket::ConnectedState ) {
+        socket.connectToHost( QHostAddress{ settings.value( "server_ip", "127.0.0.1" ).toString() },
+                              settings.value( "server_port", "19870" ).toUInt() );
+    }
+    connectionIntervalTimer.stop();
 }
