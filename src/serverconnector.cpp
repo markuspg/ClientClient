@@ -12,8 +12,10 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
         throw 20;
     }
     connect( &socket, &QTcpSocket::readyRead, this, &ccServerConnector::ReadMessage );
-    connect( &socket, &QTcpSocket::disconnected,
-             &connectionIntervalTimer, &QTimer::start );
+    connect( &socket, SIGNAL( connected() ),
+             &connectionIntervalTimer, SLOT( stop() ) );
+    connect( &socket, SIGNAL( disconnected() ),
+             &connectionIntervalTimer, SLOT( start() ) );
 
     connect( &connectionIntervalTimer, &QTimer::timeout,
              this, &ccServerConnector::TryConnect );
@@ -112,10 +114,10 @@ void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
 }
 
 void ccServerConnector::TryConnect() {
-    while ( socket.state() != QAbstractSocket::ConnectingState ||
-            socket.state() != QAbstractSocket::ConnectedState ) {
+    if ( socket.state() != QAbstractSocket::HostLookupState ||
+         socket.state() != QAbstractSocket::ConnectingState ||
+         socket.state() != QAbstractSocket::ConnectedState ) {
         socket.connectToHost( QHostAddress{ settings.value( "server_ip", "127.0.0.1" ).toString() },
                               settings.value( "server_port", "19870" ).toUInt() );
     }
-    connectionIntervalTimer.stop();
 }
