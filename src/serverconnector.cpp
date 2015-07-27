@@ -104,10 +104,12 @@ void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
     QString program;
     QStringList arguments;
 #ifdef Q_OS_UNIX
-    program = "/usr/bin/wine";
-    arguments.append( "/opt/zTree_" + zleafSettings[ 0 ] + "/zleaf.exe" );
+    program = settings.value( "wine_command", "/usr/bin/wine" ).toString();
+    arguments.append( settings.value( "ztree_installation_directory" ).toString()
+                      + "/zTree_" + zleafSettings[ 0 ] + "/zleaf.exe" );
 #else
-    program = QString{ "/opt/zTree_" + zleafSettings[ 0 ] + "/zleaf.exe" };
+    program = QString{ settings.value( "ztree_installation_directory" ).toString()
+                       + "/zTree_" + zleafSettings[ 0 ] + "/zleaf.exe" };
 #endif
     arguments << "/server" << zleafSettings[ 1 ];
     startzLeafProcess.startDetached( program, arguments );
