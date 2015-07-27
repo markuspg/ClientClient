@@ -22,6 +22,7 @@ private:
     quint16 messageID = 0;
     QSettings settings;
     QTcpSocket socket;
+    QProcess startzLeafProcess;
 
     void KillzLeaf();
     void Shutdown();
@@ -29,8 +30,9 @@ private:
 
 private slots:
     void ReadMessage();
-    void SendMessage( const QString &argMessage, const quint16 &argMessageID );
+    void SendMessage( const quint16 &argMessageID, QString *argMessage = nullptr );
     void TryConnect();
+    void zleafClosed( const int &argExitCode, const QProcess::ExitStatus &argExitStatus );
 };
 
 #endif // SERVERCONNECTOR_H

@@ -21,6 +21,9 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
              this, &ccServerConnector::TryConnect );
     connectionIntervalTimer.setInterval( 3000 );
     connectionIntervalTimer.start();
+
+    connect( &startzLeafProcess, SIGNAL( finished( int, QProcess::ExitStatus ) ),
+             this, SLOT( zleafClosed( int, QProcess::ExitStatus ) ) );
 }
 
 void ccServerConnector::KillzLeaf() {
@@ -71,13 +74,16 @@ void ccServerConnector::ReadMessage() {
     }
 }
 
-void ccServerConnector::SendMessage( const QString &argMessage, const quint16 &argMessageID ) {
+void ccServerConnector::SendMessage( const quint16 &argMessageID, QString *argMessage ) {
     QByteArray block;
     QDataStream out{ &block, QIODevice::WriteOnly };
     out.setVersion( QDataStream::Qt_5_2 );
     out << ( quint16 )0;
     out << ( quint16 )argMessageID;
-    out << argMessage;
+    if ( argMessage ) {
+        out << *argMessage;
+        delete argMessage;
+    }
     out.device()->seek( 0 );
     out << ( quint16 )( block.size() - sizeof( quint16 ) * 2 );
 
@@ -93,10 +99,11 @@ void ccServerConnector::Shutdown() {
 #ifdef Q_OS_UNIX
     shutdownProcess.startDetached( "sudo shutdown -hP now" );
 #endif
+
+    this->deleteLater();
 }
 
 void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
-    QProcess startzLeafProcess;
     startzLeafProcess.setProcessEnvironment( env );
 
     QStringList zleafSettings = argzLeafSettings.split( '|', QString::SkipEmptyParts );
@@ -113,7 +120,7 @@ void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
 #endif
     arguments << "/server" << zleafSettings[ 1 ]
               << "/channel" << QString::number( zleafSettings[ 2 ].toUInt() - 7000 );
-    startzLeafProcess.startDetached( program, arguments );
+    startzLeafProcess.start( program, arguments );
 }
 
 void ccServerConnector::TryConnect() {
@@ -123,4 +130,11 @@ void ccServerConnector::TryConnect() {
         socket.connectToHost( QHostAddress{ settings.value( "server_ip", "127.0.0.1" ).toString() },
                               settings.value( "server_port", "19870" ).toUInt() );
     }
+}
+
+void ccServerConnector::zleafClosed( const int &argExitCode, const QProcess::ExitStatus &argExitStatus ) {
+    QString *message = new QString{ tr( "z-Leaf closed with exit code '%1' and exit status '%2" )
+                                    .arg( argExitCode ).arg( argExitStatus ) };
+    qDebug() << *message;
+    SendMessage( 1, message );
 }
