@@ -111,7 +111,8 @@ void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
     program = QString{ settings.value( "ztree_installation_directory" ).toString()
                        + "/zTree_" + zleafSettings[ 0 ] + "/zleaf.exe" };
 #endif
-    arguments << "/server" << zleafSettings[ 1 ];
+    arguments << "/server" << zleafSettings[ 1 ]
+              << "/channel" << QString::number( zleafSettings[ 2 ].toUInt() - 7000 );
     startzLeafProcess.startDetached( program, arguments );
 }
 
