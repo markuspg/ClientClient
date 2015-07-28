@@ -30,7 +30,8 @@ void ccServerConnector::KillzLeaf() {
     QProcess killzLeafProcess;
     killzLeafProcess.setProcessEnvironment( env );
 #ifdef Q_OS_UNIX
-    killzLeafProcess.startDetached( "/usr/bin/killall", QStringList{ "zleaf.exe" } );
+    killzLeafProcess.startDetached( settings.value( "killall_command", "/usr/bin/killall" ).toString(),
+                                    QStringList{ "zleaf.exe" } );
 #endif
 }
 
