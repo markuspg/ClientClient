@@ -4,10 +4,10 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
     QObject{ argParent },
     connectionIntervalTimer{ this },
     env{ QProcessEnvironment::systemEnvironment() },
-    settings{ "Economic Laboratory", "EcoLabLib", this },
+    settings{ "Economic Laboratory", "ClientClient", this },
     socket{ this }
 {
-    if ( !socket.bind( QHostAddress{ settings.value( "server_ip", "127.0.0.1" ).toString() },
+    if ( !socket.bind( QHostAddress{ settings.value( "host_ip", "127.0.0.1" ).toString() },
                        settings.value( "server_port", "19870" ).toUInt() + 1 ) ) {
         throw 20;
     }
