@@ -22,3 +22,8 @@ HEADERS += \
     src/serverconnector.h
 
 QMAKE_CXXFLAGS += -std=c++11
+
+DISTFILES += \
+    LICENSE \
+    README.md \
+    data/ClientClient.conf
