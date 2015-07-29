@@ -41,6 +41,8 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
     connectionIntervalTimer.setInterval( 3000 );
     connectionIntervalTimer.start();
 
+    connect( &startzLeafProcess, &QProcess::started,
+             this, &ccServerConnector::zleafStartedSuccessfully );
     connect( &startzLeafProcess, SIGNAL( finished( int, QProcess::ExitStatus ) ),
              this, SLOT( zleafClosed( int, QProcess::ExitStatus ) ) );
 }
@@ -140,6 +142,7 @@ void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
 #endif
     arguments << "/server" << zleafSettings[ 1 ]
               << "/channel" << QString::number( zleafSettings[ 2 ].toUInt() - 7000 );
+
     startzLeafProcess.start( program, arguments );
 }
 
@@ -157,4 +160,8 @@ void ccServerConnector::zleafClosed( const int &argExitCode, const QProcess::Exi
                                     .arg( argExitCode ).arg( argExitStatus ) };
     qDebug() << *message;
     SendMessage( 1, message );
+}
+
+void ccServerConnector::zleafStartedSuccessfully() {
+    SendMessage( 0 );
 }

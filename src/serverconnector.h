@@ -52,6 +52,7 @@ private slots:
     void SendMessage( const quint16 &argMessageID, QString *argMessage = nullptr );
     void TryConnect();
     void zleafClosed( const int &argExitCode, const QProcess::ExitStatus &argExitStatus );
+    void zleafStartedSuccessfully();
 };
 
 #endif // SERVERCONNECTOR_H
