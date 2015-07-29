@@ -143,6 +143,10 @@ void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
     arguments << "/server" << zleafSettings[ 1 ]
               << "/channel" << QString::number( zleafSettings[ 2 ].toUInt() - 7000 );
 
+    if ( zleafSettings.count() == 4 ) {
+        arguments << "/name" << zleafSettings[ 3 ];
+    }
+
     startzLeafProcess.start( program, arguments );
 }
 
