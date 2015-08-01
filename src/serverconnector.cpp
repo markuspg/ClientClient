@@ -23,7 +23,12 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
     QObject{ argParent },
     connectionIntervalTimer{ this },
     env{ QProcessEnvironment::systemEnvironment() },
+#ifdef Q_OS_UNIX
     settings{ "Economic Laboratory", "ClientClient", this },
+#endif
+#ifdef Q_OS_WIN
+    settings{ "C:\\path_to_the_ini_file\\ClientClient.ini", QSettings::IniFormat, this },
+#endif
     socket{ this }
 {
     if ( !socket.bind( QHostAddress{ settings.value( "host_ip", "127.0.0.1" ).toString() },
@@ -53,6 +58,10 @@ void ccServerConnector::KillzLeaf() {
 #ifdef Q_OS_UNIX
     killzLeafProcess.startDetached( settings.value( "killall_command", "/usr/bin/killall" ).toString(),
                                     QStringList{ "zleaf.exe" } );
+#endif
+#ifdef Q_OS_WIN
+    killzLeafProcess.startDetached( "taskkill",
+                                    QStringList{} << "/IM" << "zleaf.exe" );
 #endif
 }
 
@@ -120,6 +129,10 @@ void ccServerConnector::Shutdown() {
 
 #ifdef Q_OS_UNIX
     shutdownProcess.startDetached( "sudo shutdown -hP now" );
+#endif
+#ifdef Q_OS_WIN
+    shutdownProcess.startDetached( "shutdown",
+                                    QStringList{} << "/s" << "/t" << "0" );
 #endif
 
     this->deleteLater();
