@@ -71,6 +71,27 @@ void ccServerConnector::OnSSLErrors( const QList<QSslError> &argErrors ) {
 
 void ccServerConnector::OnTextMessageReceived( QString argMessage ) {
     qDebug() << argMessage;
+
+    QStringList tempMessageSplit = argMessage.split( '|', QString::SkipEmptyParts, Qt::CaseSensitive );
+    bool conversionSucceeded = false;
+    int messageID = tempMessageSplit[ 0 ].toInt( &conversionSucceeded );
+    if ( !conversionSucceeded ) {
+        throw "Conversion to int failed";
+    }
+
+    switch ( messageID ) {
+    case 0:
+        Shutdown();
+        break;
+    case 1:
+        StartzLeaf( tempMessageSplit[ 1 ] );
+        break;
+    case 2:
+        KillzLeaf();
+        break;
+    default:
+        true;
+    }
 }
 
 void ccServerConnector::OnWebSocketConnected() {
@@ -80,7 +101,26 @@ void ccServerConnector::OnWebSocketConnected() {
 }
 
 void ccServerConnector::SendMessage( const quint16 &argMessageID, const QString *argMessage ) {
+    QString message{ QString::number( argMessageID ) + "|" + *argMessage };
+    qint64 bytesSent = webSocket.sendTextMessage( message );
+    delete argMessage;
+}
 
+void ccServerConnector::Shutdown() {
+    webSocket.close( QWebSocketProtocol::CloseCodeNormal, "Shutting down" );
+
+    QProcess shutdownProcess;
+    shutdownProcess.setProcessEnvironment( env );
+
+#ifdef Q_OS_UNIX
+    shutdownProcess.startDetached( "sudo shutdown -hP now" );
+#endif
+#ifdef Q_OS_WIN
+    shutdownProcess.startDetached( "shutdown",
+                                   QStringList{} << "/s" << "/t" << "0" );
+#endif
+
+    this->deleteLater();
 }
 
 void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
