@@ -29,8 +29,7 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
 #ifdef Q_OS_WIN
     settings{ "C:\\path_to_the_ini_file\\ClientClient.ini", QSettings::IniFormat, this },
 #endif
-    socket{ this },
-    webSocket{ settings.value( "client", "127.0.0.1" ).toString(),
+    webSocket{ QStringLiteral( "client" ),
                QWebSocketProtocol::Version13, this }
 {
     connect( &webSocket, &QWebSocket::connected,
@@ -38,20 +37,11 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
     typedef void (QWebSocket:: *sslErrorsSignal)(const QList<QSslError> &);
     connect( &webSocket, static_cast<sslErrorsSignal>(&QWebSocket::sslErrors),
              this, &ccServerConnector::OnSSLErrors );
-    webSocket.open( QUrl{ "wss://192.168.53.105:19872" } );
+    webSocket.open( QUrl{ QString{ "wss://"
+                                   + settings.value( "server_ip", "127.0.0.1" ).toString()
+                                   + ":"
+                                   + settings.value( "server_port", "0" ).toString() } } );
 
-    if ( !socket.bind( QHostAddress{ settings.value( "host_ip", "127.0.0.1" ).toString() },
-                       settings.value( "server_port", "19870" ).toUInt() + 1 ) ) {
-        throw 20;
-    }
-    connect( &socket, &QTcpSocket::readyRead, this, &ccServerConnector::ReadMessage );
-    connect( &socket, SIGNAL( connected() ),
-             &connectionIntervalTimer, SLOT( stop() ) );
-    connect( &socket, SIGNAL( disconnected() ),
-             &connectionIntervalTimer, SLOT( start() ) );
-
-    connect( &connectionIntervalTimer, &QTimer::timeout,
-             this, &ccServerConnector::TryConnect );
     connectionIntervalTimer.setInterval( 3000 );
     connectionIntervalTimer.start();
 
@@ -89,77 +79,8 @@ void ccServerConnector::OnWebSocketConnected() {
     webSocket.sendTextMessage( "password" );
 }
 
-void ccServerConnector::ReadMessage() {
-    QDataStream in( &socket );
-    in.setVersion( QDataStream::Qt_5_2 );
+void ccServerConnector::SendMessage( const quint16 &argMessageID, const QString *argMessage ) {
 
-    blockSize = 0;
-    if ( blockSize == 0 ) {
-        if ( socket.bytesAvailable() < ( int )sizeof( quint16 ) ) {
-            return;
-        }
-        in >> blockSize;
-        in >> messageID;
-    }
-
-    if ( socket.bytesAvailable() < blockSize ) {
-        return;
-    }
-
-    qDebug() << QString::number( blockSize );
-    qDebug() << QString::number( messageID );
-
-    QString serverAnswer;
-    in >> serverAnswer;
-
-    qDebug() << serverAnswer;
-
-    switch ( messageID ) {
-    case 0:
-        Shutdown();
-        break;
-    case 1:
-        StartzLeaf( serverAnswer );
-        break;
-    case 2:
-        KillzLeaf();
-        break;
-    default:
-        true;
-    }
-}
-
-void ccServerConnector::SendMessage( const quint16 &argMessageID, QString *argMessage ) {
-    QByteArray block;
-    QDataStream out{ &block, QIODevice::WriteOnly };
-    out.setVersion( QDataStream::Qt_5_2 );
-    out << ( quint16 )0;
-    out << ( quint16 )argMessageID;
-    if ( argMessage ) {
-        out << *argMessage;
-        delete argMessage;
-    }
-    out.device()->seek( 0 );
-    out << ( quint16 )( block.size() - sizeof( quint16 ) * 2 );
-
-    socket.write( block );
-}
-
-void ccServerConnector::Shutdown() {
-    socket.disconnectFromHost();
-
-    QProcess shutdownProcess;
-    shutdownProcess.setProcessEnvironment( env );
-
-#ifdef Q_OS_UNIX
-    shutdownProcess.startDetached( "sudo shutdown -hP now" );
-#endif
-#ifdef Q_OS_WIN
-    shutdownProcess.startDetached( "shutdown",
-                                    QStringList{} << "/s" << "/t" << "0" );
-#endif
-
-    this->deleteLater();
 }
 
 void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
@@ -185,15 +106,6 @@ void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
     }
 
     startzLeafProcess.start( program, arguments );
-}
-
-void ccServerConnector::TryConnect() {
-    if ( socket.state() != QAbstractSocket::HostLookupState ||
-         socket.state() != QAbstractSocket::ConnectingState ||
-         socket.state() != QAbstractSocket::ConnectedState ) {
-        socket.connectToHost( QHostAddress{ settings.value( "server_ip", "127.0.0.1" ).toString() },
-                              settings.value( "server_port", "19870" ).toUInt() );
-    }
 }
 
 void ccServerConnector::zleafClosed( const int &argExitCode, const QProcess::ExitStatus &argExitStatus ) {

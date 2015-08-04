@@ -20,6 +20,7 @@
 #ifndef SERVERCONNECTOR_H
 #define SERVERCONNECTOR_H
 
+#include <QHostInfo>
 #include <QObject>
 #include <QProcess>
 #include <QWebSocket>
@@ -36,12 +37,9 @@ signals:
 public slots:
 
 private:
-    quint16 blockSize = 0;
     QTimer connectionIntervalTimer;
     const QProcessEnvironment env;
-    quint16 messageID = 0;
     QSettings settings;
-    QTcpSocket socket;
     QProcess startzLeafProcess;
     QWebSocket webSocket;
 
@@ -53,9 +51,7 @@ private slots:
     void OnSSLErrors( const QList< QSslError > &argErrors );
     void OnTextMessageReceived( QString argMessage );
     void OnWebSocketConnected();
-    void ReadMessage();
-    void SendMessage( const quint16 &argMessageID, QString *argMessage = nullptr );
-    void TryConnect();
+    void SendMessage( const quint16 &argMessageID, const QString *argMessage = nullptr );
     void zleafClosed( const int &argExitCode, const QProcess::ExitStatus &argExitStatus );
     void zleafStartedSuccessfully();
 };
