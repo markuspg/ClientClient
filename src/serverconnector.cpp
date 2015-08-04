@@ -29,8 +29,17 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
 #ifdef Q_OS_WIN
     settings{ "C:\\path_to_the_ini_file\\ClientClient.ini", QSettings::IniFormat, this },
 #endif
-    socket{ this }
+    socket{ this },
+    webSocket{ settings.value( "client", "127.0.0.1" ).toString(),
+               QWebSocketProtocol::Version13, this }
 {
+    connect( &webSocket, &QWebSocket::connected,
+             this, &ccServerConnector::OnWebSocketConnected );
+    typedef void (QWebSocket:: *sslErrorsSignal)(const QList<QSslError> &);
+    connect( &webSocket, static_cast<sslErrorsSignal>(&QWebSocket::sslErrors),
+             this, &ccServerConnector::OnSSLErrors );
+    webSocket.open( QUrl{ "wss://192.168.53.105:19872" } );
+
     if ( !socket.bind( QHostAddress{ settings.value( "host_ip", "127.0.0.1" ).toString() },
                        settings.value( "server_port", "19870" ).toUInt() + 1 ) ) {
         throw 20;
@@ -63,6 +72,21 @@ void ccServerConnector::KillzLeaf() {
     killzLeafProcess.startDetached( "taskkill",
                                     QStringList{} << "/IM" << "zleaf.exe" );
 #endif
+}
+
+void ccServerConnector::OnSSLErrors( const QList<QSslError> &argErrors ) {
+    Q_UNUSED( argErrors );
+    webSocket.ignoreSslErrors();
+}
+
+void ccServerConnector::OnTextMessageReceived( QString argMessage ) {
+    qDebug() << argMessage;
+}
+
+void ccServerConnector::OnWebSocketConnected() {
+    connect( &webSocket, &QWebSocket::textMessageReceived,
+             this, &ccServerConnector::OnTextMessageReceived );
+    webSocket.sendTextMessage( "password" );
 }
 
 void ccServerConnector::ReadMessage() {

@@ -22,6 +22,7 @@
 
 #include <QObject>
 #include <QProcess>
+#include <QWebSocket>
 
 #include <QtNetwork>
 
@@ -42,12 +43,16 @@ private:
     QSettings settings;
     QTcpSocket socket;
     QProcess startzLeafProcess;
+    QWebSocket webSocket;
 
     void KillzLeaf();
     void Shutdown();
     void StartzLeaf( const QString &argzLeafSettings );
 
 private slots:
+    void OnSSLErrors( const QList< QSslError > &argErrors );
+    void OnTextMessageReceived( QString argMessage );
+    void OnWebSocketConnected();
     void ReadMessage();
     void SendMessage( const quint16 &argMessageID, QString *argMessage = nullptr );
     void TryConnect();
