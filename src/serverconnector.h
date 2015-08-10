@@ -52,6 +52,7 @@ private slots:
     void OnTextMessageReceived( QString argMessage );
     void OnWebSocketConnected();
     void SendMessage( const quint16 &argMessageID, const QString *argMessage = nullptr );
+    void TryConnect();
     void zleafClosed( const int &argExitCode, const QProcess::ExitStatus &argExitStatus );
     void zleafStartedSuccessfully();
 };

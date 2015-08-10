@@ -37,13 +37,15 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
     typedef void (QWebSocket:: *sslErrorsSignal)(const QList<QSslError> &);
     connect( &webSocket, static_cast<sslErrorsSignal>(&QWebSocket::sslErrors),
              this, &ccServerConnector::OnSSLErrors );
-    webSocket.open( QUrl{ QString{ "wss://"
-                                   + settings.value( "server_ip", "127.0.0.1" ).toString()
-                                   + ":"
-                                   + settings.value( "server_port", "0" ).toString() } } );
+    connect( &webSocket, SIGNAL( connected() ),
+             &connectionIntervalTimer, SLOT( stop() ) );
+    connect( &webSocket, SIGNAL( disconnected() ),
+             &connectionIntervalTimer, SLOT( start() ) );
 
     connectionIntervalTimer.setInterval( 3000 );
     connectionIntervalTimer.start();
+    connect( &connectionIntervalTimer, &QTimer::timeout,
+             this, &ccServerConnector::TryConnect );
 
     connect( &startzLeafProcess, &QProcess::started,
              this, &ccServerConnector::zleafStartedSuccessfully );
@@ -146,6 +148,15 @@ void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
     }
 
     startzLeafProcess.start( program, arguments );
+}
+
+void ccServerConnector::TryConnect() {
+    if ( webSocket.state() == QAbstractSocket::UnconnectedState ) {
+        webSocket.open( QUrl{ QString{ "wss://"
+                                       + settings.value( "server_ip", "127.0.0.1" ).toString()
+                                       + ":"
+                                       + settings.value( "server_port", "0" ).toString() } } );
+    }
 }
 
 void ccServerConnector::zleafClosed( const int &argExitCode, const QProcess::ExitStatus &argExitStatus ) {
