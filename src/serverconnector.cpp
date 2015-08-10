@@ -86,7 +86,7 @@ void ccServerConnector::OnTextMessageReceived( QString argMessage ) {
         Shutdown();
         break;
     case 1:
-        StartzLeaf( tempMessageSplit[ 1 ] );
+        StartzLeaf( argMessage );
         break;
     case 2:
         KillzLeaf();
@@ -135,16 +135,16 @@ void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
 #ifdef Q_OS_UNIX
     program = settings.value( "wine_command", "/usr/bin/wine" ).toString();
     arguments.append( settings.value( "ztree_installation_directory" ).toString()
-                      + "/zTree_" + zleafSettings[ 0 ] + "/zleaf.exe" );
+                      + "/zTree_" + zleafSettings[ 1 ] + "/zleaf.exe" );
 #else
     program = QString{ settings.value( "ztree_installation_directory" ).toString()
-                       + "/zTree_" + zleafSettings[ 0 ] + "/zleaf.exe" };
+                       + "/zTree_" + zleafSettings[ 1 ] + "/zleaf.exe" };
 #endif
-    arguments << "/server" << zleafSettings[ 1 ]
-              << "/channel" << QString::number( zleafSettings[ 2 ].toUInt() - 7000 );
+    arguments << "/server" << zleafSettings[ 2 ]
+              << "/channel" << QString::number( zleafSettings[ 3 ].toUInt() - 7000 );
 
-    if ( zleafSettings.count() == 4 ) {
-        arguments << "/name" << zleafSettings[ 3 ];
+    if ( zleafSettings.count() == 5 ) {
+        arguments << "/name" << zleafSettings[ 4 ];
     }
 
     startzLeafProcess.start( program, arguments );
