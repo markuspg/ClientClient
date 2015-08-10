@@ -103,7 +103,12 @@ void ccServerConnector::OnWebSocketConnected() {
 }
 
 void ccServerConnector::SendMessage( const quint16 &argMessageID, const QString *argMessage ) {
-    QString message{ QString::number( argMessageID ) + "|" + *argMessage };
+    QString message;
+    if ( argMessage ) {
+        message = QString::number( argMessageID ) + "|" + *argMessage;
+    } else {
+        message = QString::number( argMessageID );
+    }
     qint64 bytesSent = webSocket.sendTextMessage( message );
     delete argMessage;
 }
