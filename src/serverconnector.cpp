@@ -99,7 +99,7 @@ void ccServerConnector::OnTextMessageReceived( QString argMessage ) {
 void ccServerConnector::OnWebSocketConnected() {
     connect( &webSocket, &QWebSocket::textMessageReceived,
              this, &ccServerConnector::OnTextMessageReceived );
-    webSocket.sendTextMessage( "password" );
+    webSocket.sendTextMessage( settings.value( "server_connection_password", "password" ).toString() );
 }
 
 void ccServerConnector::SendMessage( const quint16 &argMessageID, const QString *argMessage ) {
