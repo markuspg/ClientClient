@@ -27,7 +27,7 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
     settings{ "Economic Laboratory", "ClientClient", this },
 #endif
 #ifdef Q_OS_WIN
-    settings{ "C:\\path_to_the_ini_file\\ClientClient.ini", QSettings::IniFormat, this },
+    settings{ "C:\\EcoLabLib\\EcoLabLib.conf", QSettings::IniFormat, this },
 #endif
     webSocket{ QStringLiteral( "client" ),
                QWebSocketProtocol::Version13, this }
