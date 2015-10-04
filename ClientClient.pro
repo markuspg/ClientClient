@@ -27,3 +27,6 @@ DISTFILES += \
     LICENSE \
     README.md \
     data/ClientClient.conf
+
+OTHER_FILES += \
+    CHANGELOG.md

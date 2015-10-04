@@ -8,16 +8,18 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 ### Removed
 
-## [1.0.1] - 2015-09-21
+## [1.2.0] - 2015-10-04
 ### Changed
-- Got rid of temporarily storing the downloaded image file
+- Use encrypted websockets to connect to the server
 
-### Fixed
-- Crash on close of WebcamDisplay
-
-## [1.0.0] - 2015-07-29
+## [1.1.0] - 2015-07-21
 ### Added
-- Reused the old code from Labcontrol2
+- Implemented automatic (re-)connection.
 
-[unreleased]: https://github.com/markuspg/WebcamDisplay/compare/v1.0.1...HEAD
-[1.0.1]: https://github.com/markuspg/WebcamDisplay/compare/v1.0.0...v1.0.1
+## [1.0.0] - 2015-07-20
+### Added
+- First usable version of ClientClient
+
+[unreleased]: https://github.com/markuspg/ClientClient/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/markuspg/ClientClient/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/markuspg/ClientClient/compare/v1.0.0...v1.1.0
