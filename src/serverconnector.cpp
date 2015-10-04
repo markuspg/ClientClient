@@ -32,8 +32,6 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
     webSocket{ QStringLiteral( "client" ),
                QWebSocketProtocol::Version13, this }
 {
-    prohibitUnencryptedConnection = settings.value( "prohibit_unencrypted_connection", "false" ).toBool();
-
     connect( &webSocket, &QWebSocket::connected,
              this, &ccServerConnector::OnWebSocketConnected );
     typedef void (QWebSocket:: *sslErrorsSignal)(const QList<QSslError> &);
@@ -167,18 +165,10 @@ void ccServerConnector::TryConnect() {
         return;
     }
 
-    if ( !prohibitUnencryptedConnection && connectionMode % 2 == 1 ) {
-        webSocket.open( QUrl{ QString{ "ws://"
-                                       + settings.value( "server_ip", "127.0.0.1" ).toString()
-                                       + ":"
-                                       + settings.value( "server_port", "0" ).toString() } } );
-    } else {
-        webSocket.open( QUrl{ QString{ "wss://"
-                                       + settings.value( "server_ip", "127.0.0.1" ).toString()
-                                       + ":"
-                                       + settings.value( "server_port", "0" ).toString() } } );
-    }
-    ++connectionMode;
+    webSocket.open( QUrl{ QString{ "wss://"
+                                   + settings.value( "server_ip", "127.0.0.1" ).toString()
+                                   + ":"
+                                   + settings.value( "server_port", "0" ).toString() } } );
 }
 
 void ccServerConnector::zleafClosed( const int &argExitCode, const QProcess::ExitStatus &argExitStatus ) {

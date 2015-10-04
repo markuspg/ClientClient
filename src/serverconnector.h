@@ -38,9 +38,7 @@ public slots:
 
 private:
     QTimer connectionIntervalTimer;
-    unsigned int connectionMode = 1;
     const QProcessEnvironment env;
-    bool prohibitUnencryptedConnection = false;
     QSettings settings;
     QProcess startzLeafProcess;
     QWebSocket webSocket;
