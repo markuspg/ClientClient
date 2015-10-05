@@ -29,4 +29,5 @@ DISTFILES += \
     data/ClientClient.conf
 
 OTHER_FILES += \
-    CHANGELOG.md
+    CHANGELOG.md \
+    doc/doc.md
