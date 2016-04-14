@@ -27,10 +27,14 @@
 
 #include <QtNetwork>
 
-class ccServerConnector : public QObject {
+class ccServerConnector final : public QObject {
     Q_OBJECT
 public:
     explicit ccServerConnector( QObject *argParent = nullptr );
+    ccServerConnector( const ccServerConnector& ) = delete;
+    ccServerConnector& operator=( const ccServerConnector& ) = delete;
+    ccServerConnector( ccServerConnector&& ) = delete;
+    ccServerConnector& operator=( ccServerConnector&& ) = delete;
 
 signals:
 

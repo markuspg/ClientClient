@@ -54,6 +54,7 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
 }
 
 void ccServerConnector::KillzLeaf() {
+    qDebug() << "Killing z-Leaf";
     QProcess killzLeafProcess;
     killzLeafProcess.setProcessEnvironment( env );
 #ifdef Q_OS_UNIX
@@ -70,14 +71,14 @@ void ccServerConnector::OnSSLErrors( const QList<QSslError> &argErrors ) {
     Q_UNUSED( argErrors );
 
     for ( auto s: argErrors ) {
-        qDebug() << s.errorString();
+        qWarning() << "SSL error: " << s.errorString();
     }
 
     webSocket.ignoreSslErrors();
 }
 
 void ccServerConnector::OnTextMessageReceived( QString argMessage ) {
-    qDebug() << argMessage;
+    qDebug() << "Received message: " <<  argMessage;
 
     QStringList tempMessageSplit = argMessage.split( '|', QString::SkipEmptyParts, Qt::CaseSensitive );
     bool conversionSucceeded = false;
@@ -97,7 +98,7 @@ void ccServerConnector::OnTextMessageReceived( QString argMessage ) {
         KillzLeaf();
         break;
     default:
-        true;
+        qWarning() << "Fell through 'ccServerConnector::OnTextMessageReceived' case switch";
     }
 }
 
@@ -114,11 +115,12 @@ void ccServerConnector::SendMessage( const quint16 &argMessageID, const QString 
     } else {
         message = QString::number( argMessageID );
     }
-    qint64 bytesSent = webSocket.sendTextMessage( message );
+    webSocket.sendTextMessage( message );
     delete argMessage;
 }
 
 void ccServerConnector::Shutdown() {
+    qDebug() << "Attempting to shut down";
     webSocket.close( QWebSocketProtocol::CloseCodeNormal, "Shutting down" );
 
     QProcess shutdownProcess;
@@ -136,6 +138,7 @@ void ccServerConnector::Shutdown() {
 }
 
 void ccServerConnector::StartzLeaf( const QString &argzLeafSettings ) {
+    qDebug() << "Starting z-Leaf";
     startzLeafProcess.setProcessEnvironment( env );
 
     QStringList zleafSettings = argzLeafSettings.split( '|', QString::SkipEmptyParts );
