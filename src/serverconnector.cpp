@@ -34,6 +34,8 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
 {
     connect( &webSocket, &QWebSocket::connected,
              this, &ccServerConnector::OnWebSocketConnected );
+    connect( &webSocket, &QWebSocket::textMessageReceived,
+             this, &ccServerConnector::OnTextMessageReceived );
     typedef void (QWebSocket:: *sslErrorsSignal)(const QList<QSslError> &);
     connect( &webSocket, static_cast<sslErrorsSignal>(&QWebSocket::sslErrors),
              this, &ccServerConnector::OnSSLErrors );
@@ -103,8 +105,6 @@ void ccServerConnector::OnTextMessageReceived( QString argMessage ) {
 }
 
 void ccServerConnector::OnWebSocketConnected() {
-    connect( &webSocket, &QWebSocket::textMessageReceived,
-             this, &ccServerConnector::OnTextMessageReceived );
     webSocket.sendTextMessage( settings.value( "server_connection_password", "password" ).toString() );
 }
 
