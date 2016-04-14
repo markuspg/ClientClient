@@ -49,7 +49,7 @@ private:
 
     void KillzLeaf();
     void Shutdown();
-    void StartzLeaf( const QString &argzLeafSettings );
+    void StartzLeaf( const QStringList &argzLeafSettings );
 
 private slots:
     void OnSSLErrors( const QList< QSslError > &argErrors );
