@@ -83,25 +83,21 @@ void ccServerConnector::OnTextMessageReceived( QString argMessage ) {
     qDebug() << "Received message: " <<  argMessage;
 
     QStringList tempMessageSplit = argMessage.split( '|', QString::SkipEmptyParts, Qt::CaseSensitive );
-    bool conversionSucceeded = false;
-    int messageID = tempMessageSplit[ 0 ].toInt( &conversionSucceeded );
-    if ( !conversionSucceeded ) {
-        throw "Conversion to int failed";
+
+    if ( tempMessageSplit[ 0 ] == "StartzLeaf" ) {
+        StartzLeaf( tempMessageSplit );
+        return;
+    }
+    if ( tempMessageSplit[ 0 ] == "KillzLeaf" ) {
+        KillzLeaf();
+        return;
+    }
+    if ( tempMessageSplit[ 0 ] == "Shutdown" ) {
+        Shutdown();
+        return;
     }
 
-    switch ( messageID ) {
-    case 0:
-        Shutdown();
-        break;
-    case 1:
-        StartzLeaf( tempMessageSplit );
-        break;
-    case 2:
-        KillzLeaf();
-        break;
-    default:
-        qWarning() << "Fell through 'ccServerConnector::OnTextMessageReceived' case switch";
-    }
+    qWarning() << "Unhandled message received from server";
 }
 
 void ccServerConnector::OnWebSocketConnected() {
@@ -154,7 +150,7 @@ void ccServerConnector::StartzLeaf( const QStringList &argzLeafSettings ) {
     arguments << "/server" << argzLeafSettings[ 2 ]
               << "/channel" << QString::number( argzLeafSettings[ 3 ].toUInt() - 7000 );
 
-    if ( zleafSettings.count() == 5 ) {
+    if ( argzLeafSettings.count() == 5 ) {
         arguments << "/name" << argzLeafSettings[ 4 ];
     }
 
