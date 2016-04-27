@@ -139,13 +139,22 @@ void ccServerConnector::StartzLeaf( const QStringList &argzLeafSettings ) {
 
     QString program;
     QStringList arguments;
+    QString pathTozLeaf;
+    if ( settings.value( "ztree_installation_directory" ).toString().endsWith( '/' ) ) {
+        pathTozLeaf = QString{ settings.value( "ztree_installation_directory" ).toString()
+                               + "zTree_" + argzLeafSettings[ 1 ] + "/zleaf.exe" };
+    } else {
+        pathTozLeaf = QString{ settings.value( "ztree_installation_directory" ).toString()
+                               + "/zTree_" + argzLeafSettings[ 1 ] + "/zleaf.exe" };
+    }
 #ifdef Q_OS_UNIX
-    program = settings.value( "wine_command", "/usr/bin/wine" ).toString();
-    arguments.append( settings.value( "ztree_installation_directory" ).toString()
-                      + "/zTree_" + argzLeafSettings[ 1 ] + "/zleaf.exe" );
+    // The 'taskset' workaround is needed because of random crashes on startup of 'z-Leaf',
+    // more details can be found in the winehq bug reports 35041 and 39404
+    program = settings.value( "taskset_command", "/usr/bin/taskset" ).toString();
+    arguments << "-c"  << "0" << settings.value( "wine_command", "/usr/bin/wine" ).toString()
+              << pathTozLeaf ;
 #else
-    program = QString{ settings.value( "ztree_installation_directory" ).toString()
-                       + "/zTree_" + argzLeafSettings[ 1 ] + "/zleaf.exe" };
+    program = pathTozLeaf;
 #endif
     arguments << "/server" << argzLeafSettings[ 2 ]
               << "/channel" << QString::number( argzLeafSettings[ 3 ].toUInt() - 7000 );
@@ -154,6 +163,7 @@ void ccServerConnector::StartzLeaf( const QStringList &argzLeafSettings ) {
         arguments << "/name" << argzLeafSettings[ 4 ];
     }
 
+    qDebug() << program << arguments.join( ' ' );
     startzLeafProcess.start( program, arguments );
 }
 
