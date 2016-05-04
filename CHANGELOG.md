@@ -4,9 +4,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased][unreleased]
 ### Added
+- An installation script to assist the 'ClientClient' installation
 ### Changed
 ### Fixed
+- Problem with z-Leaves crashing on startup
 ### Removed
+- Microsoft Windows support
 
 ## [3.0.0] - 2015-10-05
 ### Added

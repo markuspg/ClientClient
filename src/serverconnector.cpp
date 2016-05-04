@@ -23,12 +23,7 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
     QObject{ argParent },
     connectionIntervalTimer{ this },
     env{ QProcessEnvironment::systemEnvironment() },
-#ifdef Q_OS_UNIX
     settings{ "Economic Laboratory", "ClientClient", this },
-#endif
-#ifdef Q_OS_WIN
-    settings{ "C:\\EcoLabLib\\EcoLabLib.conf", QSettings::IniFormat, this },
-#endif
     webSocket{ QStringLiteral( "client" ),
                QWebSocketProtocol::Version13, this }
 {
@@ -59,14 +54,8 @@ void ccServerConnector::KillzLeaf() {
     qDebug() << "Killing z-Leaf";
     QProcess killzLeafProcess;
     killzLeafProcess.setProcessEnvironment( env );
-#ifdef Q_OS_UNIX
     killzLeafProcess.startDetached( settings.value( "killall_command", "/usr/bin/killall" ).toString(),
                                     QStringList{ "zleaf.exe" } );
-#endif
-#ifdef Q_OS_WIN
-    killzLeafProcess.startDetached( "taskkill",
-                                    QStringList{} << "/IM" << "zleaf.exe" );
-#endif
 }
 
 void ccServerConnector::OnSSLErrors( const QList<QSslError> &argErrors ) {
@@ -122,13 +111,7 @@ void ccServerConnector::Shutdown() {
     QProcess shutdownProcess;
     shutdownProcess.setProcessEnvironment( env );
 
-#ifdef Q_OS_UNIX
     shutdownProcess.startDetached( "sudo shutdown -hP now" );
-#endif
-#ifdef Q_OS_WIN
-    shutdownProcess.startDetached( "shutdown",
-                                   QStringList{} << "/s" << "/t" << "0" );
-#endif
 
     this->deleteLater();
 }
@@ -147,15 +130,12 @@ void ccServerConnector::StartzLeaf( const QStringList &argzLeafSettings ) {
         pathTozLeaf = QString{ settings.value( "ztree_installation_directory" ).toString()
                                + "/zTree_" + argzLeafSettings[ 1 ] + "/zleaf.exe" };
     }
-#ifdef Q_OS_UNIX
+
     // The 'taskset' workaround is needed because of random crashes on startup of 'z-Leaf',
     // more details can be found in the winehq bug reports 35041 and 39404
     program = settings.value( "taskset_command", "/usr/bin/taskset" ).toString();
     arguments << "-c"  << "0" << settings.value( "wine_command", "/usr/bin/wine" ).toString()
               << pathTozLeaf ;
-#else
-    program = pathTozLeaf;
-#endif
     arguments << "/server" << argzLeafSettings[ 2 ]
               << "/channel" << QString::number( argzLeafSettings[ 3 ].toUInt() - 7000 );
 
