@@ -17,11 +17,13 @@
  *  along with ClientClient.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QCoreApplication>
+#include <QDebug>
+
 #include "serverconnector.h"
 
-#include <QCoreApplication>
-
 int main( int argc, char *argv[] ) {
+    qDebug() << "Started 'ClientClient'";
     QCoreApplication a{ argc, argv };
     ccServerConnector serverConnector;
 

@@ -17,6 +17,8 @@
  *  along with ClientClient.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QDebug>
+
 #include "serverconnector.h"
 
 ccServerConnector::ccServerConnector( QObject *argParent) :
@@ -27,6 +29,7 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
     webSocket{ QStringLiteral( "client" ),
                QWebSocketProtocol::Version13, this }
 {
+    qDebug() << "Initializing 'ccServerConnector'";
     connect( &webSocket, &QWebSocket::connected,
              this, &ccServerConnector::OnWebSocketConnected );
     connect( &webSocket, &QWebSocket::textMessageReceived,
@@ -48,13 +51,16 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
              this, &ccServerConnector::zleafStartedSuccessfully );
     connect( &startzLeafProcess, SIGNAL( finished( int, QProcess::ExitStatus ) ),
              this, SLOT( zleafClosed( int, QProcess::ExitStatus ) ) );
+    qDebug() << "Finished initializing 'ccServerConnector'";
 }
 
 void ccServerConnector::KillzLeaf() {
-    qDebug() << "Killing z-Leaf";
     QProcess killzLeafProcess;
     killzLeafProcess.setProcessEnvironment( env );
-    killzLeafProcess.startDetached( settings.value( "killall_command", "/usr/bin/killall" ).toString(),
+    qDebug() << settings.value( "killall_command", "/usr/bin/killall" ).toString()
+             << "zleaf.exe";
+    killzLeafProcess.startDetached( settings.value( "killall_command",
+                                                    "/usr/bin/killall" ).toString(),
                                     QStringList{ "zleaf.exe" } );
 }
 
@@ -76,12 +82,10 @@ void ccServerConnector::OnTextMessageReceived( QString argMessage ) {
     if ( tempMessageSplit[ 0 ] == "StartzLeaf" ) {
         StartzLeaf( tempMessageSplit );
         return;
-    }
-    if ( tempMessageSplit[ 0 ] == "KillzLeaf" ) {
+    } else if ( tempMessageSplit[ 0 ] == "KillzLeaf" ) {
         KillzLeaf();
         return;
-    }
-    if ( tempMessageSplit[ 0 ] == "Shutdown" ) {
+    } else if ( tempMessageSplit[ 0 ] == "Shutdown" ) {
         Shutdown();
         return;
     }
@@ -90,7 +94,9 @@ void ccServerConnector::OnTextMessageReceived( QString argMessage ) {
 }
 
 void ccServerConnector::OnWebSocketConnected() {
-    webSocket.sendTextMessage( settings.value( "server_connection_password", "password" ).toString() );
+    qDebug() << "Web socket connection attempt was successful, sending password";
+    webSocket.sendTextMessage( settings.value( "server_connection_password",
+                                               "password" ).toString() );
 }
 
 void ccServerConnector::SendMessage( const quint16 &argMessageID, const QString *argMessage ) {
@@ -101,6 +107,7 @@ void ccServerConnector::SendMessage( const quint16 &argMessageID, const QString 
         message = QString::number( argMessageID );
     }
     webSocket.sendTextMessage( message );
+    qDebug() << "Sent message" << message << "to server";
     delete argMessage;
 }
 
@@ -143,12 +150,17 @@ void ccServerConnector::StartzLeaf( const QStringList &argzLeafSettings ) {
         arguments << "/name" << argzLeafSettings[ 4 ];
     }
 
-    qDebug() << program << arguments.join( ' ' );
+    qDebug() << program << arguments;
     startzLeafProcess.start( program, arguments );
 }
 
 void ccServerConnector::TryConnect() {
+    qDebug() << "Attempting to connect to server"
+             << settings.value( "server_ip", "127.0.0.1" ).toString()
+             << "using port" << settings.value( "server_port", "0" ).toString();
     if ( webSocket.state() != QAbstractSocket::UnconnectedState ) {
+        qDebug() << "The websocket is not in state 'UnconnectedState',"
+                    " skipping connection attempt";
         return;
     }
 
@@ -166,5 +178,6 @@ void ccServerConnector::zleafClosed( const int &argExitCode, const QProcess::Exi
 }
 
 void ccServerConnector::zleafStartedSuccessfully() {
+    qDebug() << "z-Leaf started successfully";
     SendMessage( 0 );
 }
