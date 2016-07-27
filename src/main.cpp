@@ -25,7 +25,7 @@
 int main( int argc, char *argv[] ) {
     qDebug() << "Started 'ClientClient'";
     QCoreApplication a{ argc, argv };
-    ccServerConnector serverConnector;
+    cc::ServerConnector serverConnector;
 
     return a.exec();
 }

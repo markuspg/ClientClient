@@ -27,14 +27,16 @@
 
 #include <QtNetwork>
 
-class ccServerConnector final : public QObject {
+namespace cc {
+
+class ServerConnector final : public QObject {
     Q_OBJECT
 public:
-    explicit ccServerConnector( QObject *argParent = nullptr );
-    ccServerConnector( const ccServerConnector& ) = delete;
-    ccServerConnector& operator=( const ccServerConnector& ) = delete;
-    ccServerConnector( ccServerConnector&& ) = delete;
-    ccServerConnector& operator=( ccServerConnector&& ) = delete;
+    explicit ServerConnector( QObject *argParent = nullptr );
+    ServerConnector( const ServerConnector& ) = delete;
+    ServerConnector& operator=( const ServerConnector& ) = delete;
+    ServerConnector( ServerConnector&& ) = delete;
+    ServerConnector& operator=( ServerConnector&& ) = delete;
 
 signals:
 
@@ -60,5 +62,7 @@ private slots:
     void zleafClosed( const int &argExitCode, const QProcess::ExitStatus &argExitStatus );
     void zleafStartedSuccessfully();
 };
+
+}
 
 #endif // SERVERCONNECTOR_H

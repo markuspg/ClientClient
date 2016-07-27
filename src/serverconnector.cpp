@@ -21,7 +21,7 @@
 
 #include "serverconnector.h"
 
-ccServerConnector::ccServerConnector( QObject *argParent) :
+cc::ServerConnector::ServerConnector( QObject *argParent) :
     QObject{ argParent },
     connectionIntervalTimer{ this },
     env{ QProcessEnvironment::systemEnvironment() },
@@ -31,12 +31,12 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
 {
     qDebug() << "Initializing 'ccServerConnector'";
     connect( &webSocket, &QWebSocket::connected,
-             this, &ccServerConnector::OnWebSocketConnected );
+             this, &ServerConnector::OnWebSocketConnected );
     connect( &webSocket, &QWebSocket::textMessageReceived,
-             this, &ccServerConnector::OnTextMessageReceived );
+             this, &ServerConnector::OnTextMessageReceived );
     typedef void (QWebSocket:: *sslErrorsSignal)(const QList<QSslError> &);
     connect( &webSocket, static_cast<sslErrorsSignal>(&QWebSocket::sslErrors),
-             this, &ccServerConnector::OnSSLErrors );
+             this, &ServerConnector::OnSSLErrors );
     connect( &webSocket, SIGNAL( connected() ),
              &connectionIntervalTimer, SLOT( stop() ) );
     connect( &webSocket, SIGNAL( disconnected() ),
@@ -45,16 +45,16 @@ ccServerConnector::ccServerConnector( QObject *argParent) :
     connectionIntervalTimer.setInterval( 3000 );
     connectionIntervalTimer.start();
     connect( &connectionIntervalTimer, &QTimer::timeout,
-             this, &ccServerConnector::TryConnect );
+             this, &ServerConnector::TryConnect );
 
     connect( &startzLeafProcess, &QProcess::started,
-             this, &ccServerConnector::zleafStartedSuccessfully );
+             this, &ServerConnector::zleafStartedSuccessfully );
     connect( &startzLeafProcess, SIGNAL( finished( int, QProcess::ExitStatus ) ),
              this, SLOT( zleafClosed( int, QProcess::ExitStatus ) ) );
-    qDebug() << "Finished initializing 'ccServerConnector'";
+    qDebug() << "Finished initializing 'ServerConnector'";
 }
 
-void ccServerConnector::KillzLeaf() {
+void cc::ServerConnector::KillzLeaf() {
     QProcess killzLeafProcess;
     killzLeafProcess.setProcessEnvironment( env );
     qDebug() << settings.value( "killall_command", "/usr/bin/killall" ).toString()
@@ -64,7 +64,7 @@ void ccServerConnector::KillzLeaf() {
                                     QStringList{ "zleaf.exe" } );
 }
 
-void ccServerConnector::OnSSLErrors( const QList<QSslError> &argErrors ) {
+void cc::ServerConnector::OnSSLErrors( const QList<QSslError> &argErrors ) {
     Q_UNUSED( argErrors );
 
     for ( auto s: argErrors ) {
@@ -74,10 +74,11 @@ void ccServerConnector::OnSSLErrors( const QList<QSslError> &argErrors ) {
     webSocket.ignoreSslErrors();
 }
 
-void ccServerConnector::OnTextMessageReceived( QString argMessage ) {
+void cc::ServerConnector::OnTextMessageReceived( QString argMessage ) {
     qDebug() << "Received message: " <<  argMessage;
 
-    QStringList tempMessageSplit = argMessage.split( '|', QString::SkipEmptyParts, Qt::CaseSensitive );
+    QStringList tempMessageSplit = argMessage.split( '|', QString::SkipEmptyParts,
+                                                     Qt::CaseSensitive );
 
     if ( tempMessageSplit[ 0 ] == "StartzLeaf" ) {
         StartzLeaf( tempMessageSplit );
@@ -93,13 +94,14 @@ void ccServerConnector::OnTextMessageReceived( QString argMessage ) {
     qWarning() << "Unhandled message received from server";
 }
 
-void ccServerConnector::OnWebSocketConnected() {
+void cc::ServerConnector::OnWebSocketConnected() {
     qDebug() << "Web socket connection attempt was successful, sending password";
     webSocket.sendTextMessage( settings.value( "server_connection_password",
                                                "password" ).toString() );
 }
 
-void ccServerConnector::SendMessage( const quint16 &argMessageID, const QString *argMessage ) {
+void cc::ServerConnector::SendMessage( const quint16 &argMessageID,
+                                       const QString *argMessage ) {
     QString message;
     if ( argMessage ) {
         message = QString::number( argMessageID ) + "|" + *argMessage;
@@ -111,7 +113,7 @@ void ccServerConnector::SendMessage( const quint16 &argMessageID, const QString 
     delete argMessage;
 }
 
-void ccServerConnector::Shutdown() {
+void cc::ServerConnector::Shutdown() {
     qDebug() << "Attempting to shut down";
     webSocket.close( QWebSocketProtocol::CloseCodeNormal, "Shutting down" );
 
@@ -123,7 +125,7 @@ void ccServerConnector::Shutdown() {
     this->deleteLater();
 }
 
-void ccServerConnector::StartzLeaf( const QStringList &argzLeafSettings ) {
+void cc::ServerConnector::StartzLeaf( const QStringList &argzLeafSettings ) {
     qDebug() << "Starting z-Leaf";
     startzLeafProcess.setProcessEnvironment( env );
 
@@ -154,7 +156,7 @@ void ccServerConnector::StartzLeaf( const QStringList &argzLeafSettings ) {
     startzLeafProcess.start( program, arguments );
 }
 
-void ccServerConnector::TryConnect() {
+void cc::ServerConnector::TryConnect() {
     qDebug() << "Attempting to connect to server"
              << settings.value( "server_ip", "127.0.0.1" ).toString()
              << "using port" << settings.value( "server_port", "0" ).toString();
@@ -170,14 +172,15 @@ void ccServerConnector::TryConnect() {
                                    + settings.value( "server_port", "0" ).toString() } } );
 }
 
-void ccServerConnector::zleafClosed( const int &argExitCode, const QProcess::ExitStatus &argExitStatus ) {
+void cc::ServerConnector::zleafClosed( const int &argExitCode,
+                                       const QProcess::ExitStatus &argExitStatus ) {
     QString *message = new QString{ tr( "z-Leaf closed with exit code '%1' and exit status '%2" )
                                     .arg( argExitCode ).arg( argExitStatus ) };
     qDebug() << *message;
     SendMessage( 1, message );
 }
 
-void ccServerConnector::zleafStartedSuccessfully() {
+void cc::ServerConnector::zleafStartedSuccessfully() {
     qDebug() << "z-Leaf started successfully";
     SendMessage( 0 );
 }
